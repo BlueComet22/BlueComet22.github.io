@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Example Show Controls</title>
+    <title>Galilean Moons Show</title>
     <link rel="stylesheet" type="text/css" href="main.css">
     <script type="text/javascript" src="openspace-api.js"></script>
     <script type="text/javascript" src="openspace-default-buttons.js"></script>
