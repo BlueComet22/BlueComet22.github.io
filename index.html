@@ -1,0 +1,316 @@
+<html>
+  <head>
+    <title>Tour of the Galilean Moons</title>
+    <link rel="stylesheet" type="text/css" href="main.css">
+    <script type="text/javascript" src="openspace-api.js"></script>
+    <script type="text/javascript" src="openspace-default-buttons.js"></script>
+
+    <script type="text/javascript">
+      //variable for js libarary
+      var openspace = null;
+
+      const delay = ms => new Promise(res => setTimeout(res, ms));
+
+      var htmlFunction = (action, id) => {
+          var cardHTML = "<div id=\"" + action.title + "\" class='card'><h2>" + action.title + "</h2>";
+          if (action.description) {
+            action.description.split('\n').map(item => {
+              cardHTML += "<p>" + item + "</p>";
+            });
+          }
+          if (action.buttons) {
+            Object.keys(action.buttons).map(button => {
+              const fn = action.buttons[button];
+              cardHTML += "<button id=\"" + action.title+button + "\">"+ button +"</button>";
+            });
+          }
+          cardHTML += "</div>";
+          document.getElementById('main').innerHTML += cardHTML;
+      };
+
+      var clickFunction = (action, id) => {
+        if (action.buttons) {
+          Object.keys(action.buttons).map(button => {
+              const fn = action.buttons[button];
+              document.getElementById(action.title+button).addEventListener("click", fn);
+          });
+        }
+      }
+
+      //helper function to map the buttons to html
+      function mapButtons(openspace) {
+        document.getElementById('main').innerHTML += "<div class='card'>Default Buttons</div>"
+        defaultButtonGroups.map(htmlFunction);
+        defaultButtonGroups.map(clickFunction);
+      }
+
+      //helper function to connect to opensapce
+      var connectToOpenSpace = () => {
+        //setup the api params
+        var host = document.getElementById('ipaddress').value;
+        var api = window.openspaceApi(host, 4682);
+        //notify users on disconnect
+        api.onDisconnect(() => {
+          console.log("disconnected");
+          document.getElementById('container').className = "disconnected";
+          document.getElementById('connection-status').style.opacity = 1;
+          var disconnectedString = "Connect to OpenSpace: ";
+          disconnectedString += '<input id="ipaddress" type=text placeholder="Enter ip address" /> ';
+          disconnectedString += '<button onClick="connectToOpenSpace();">Connect</button>';
+          document.getElementById('connection-status').innerHTML = disconnectedString;
+          openspace = null;
+        });
+        //notify users and map buttons when connected
+        api.onConnect(async () => {
+          try {
+            document.getElementById('container').className = "connected";
+            document.getElementById('connection-status').innerHTML = "";
+            openspace = await api.library();
+            console.log('connected');
+            // mapButtons(openspace);
+          } catch (e) {
+            console.log('OpenSpace library could not be loaded: Error: \n', e);
+            return;
+          }
+        })
+        //connect
+        api.connect();
+      };
+
+      function logMessage(message) {
+        console.log(message);
+        document.getElementById('connection-status').innerHTML = message;
+        document.getElementById("connection-status").style.opacity = 1;
+        fadeOut();
+      }
+
+      // function that fades out the log div after 5 seconds
+      function fadeOut() {
+        setTimeout(function() {
+          var fade = document.getElementById("connection-status");
+          var timerId = setInterval(function() {
+            var opacity = fade.style.opacity;
+            if (opacity == 0.0) {
+              clearInterval(timerId);
+            } else {
+              fade.style.opacity = opacity - 0.05;
+            }
+          }, 100);
+        }, 5000);
+      }
+
+      async function fadeOutSceneGraphNode(sgn, option) {
+        openspace.setPropertyValue('Scene.' + sgn + '.Renderable.Opacity', 0.0, 1.0);
+        if (option != 'NoDisable') {
+          await delay(1500);
+          openspace.setPropertyValue('Scene.' + sgn + '.Renderable.Enabled', false)    ;
+        }
+      }
+      function fadeInSceneGraphNode(sgn) {
+        openspace.setPropertyValue('Scene.' + sgn + '.Renderable.Opacity', 0.0);
+        openspace.setPropertyValue('Scene.' + sgn + '.Renderable.Enabled', true);
+        openspace.setPropertyValue('Scene.' + sgn + '.Renderable.Opacity', 0.9, 1.0);
+      }
+
+      function fadeInTagGroup(sgn) {
+        openspace.setPropertyValue(sgn + '.Renderable.Opacity', 0.0);
+        openspace.setPropertyValue(sgn + '.Renderable.Enabled', true);
+        openspace.setPropertyValue(sgn + '.Renderable.Opacity', 0.9, 1.0);
+      }
+
+      async function fadeOutTagGroup(sgn, option) {
+        openspace.setPropertyValue(sgn + '.Renderable.Opacity', 0.0, 1.0);
+        if (option != 'NoDisable') {
+          await delay(1500);
+          openspace.setPropertyValue(sgn + '.Renderable.Enabled', false)    ;
+        }
+      }
+      async function fadeOutColorLayer(planet, layer) {
+        openspace.setPropertyValueSingle('Scene.' + planet + '.Renderable.Layers.ColorLayers.' + layer + '.Settings.Opacity', 0.0, 1.0);
+        await delay(1500);
+        openspace.setPropertyValueSingle('Scene.' + planet + '.Renderable.Layers.ColorLayers.' + layer + '.Enabled', false);
+      }
+
+      function fadeInColorLayer(planet, layer) {
+        openspace.setPropertyValueSingle('Scene.' + planet + '.Renderable.Layers.ColorLayers.' + layer + '.Settings.Opacity', 0.0);
+        openspace.setPropertyValueSingle('Scene.' + planet + '.Renderable.Layers.ColorLayers.' + layer + '.Enabled', true);
+        openspace.setPropertyValueSingle('Scene.' + planet + '.Renderable.Layers.ColorLayers.' + layer + '.Settings.Opacity', 1.0, 1.0);
+      }
+
+      async function disableHeightLayer(planet, layer) {
+        openspace.setPropertyValueSingle('Scene.' + planet + '.Renderable.Layers.HeightLayers.' + layer + '.Enabled', false);
+      }
+
+      function enableHeightLayer(planet, layer) {
+        openspace.setPropertyValueSingle('Scene.' + planet + '.Renderable.Layers.HeightLayers.' + layer + '.Enabled', true);
+      }
+
+      function flytosomewhere(whereto) {
+        openspace.pathnavigation.flyTo(whereto);
+        openspace.time.setPause(true)
+
+      }
+
+    </script>
+
+
+  </head>
+  <body>
+    <!-- HTML Containers -->
+    <div id="container" class="disconnected">
+      <div id="connection-status" class="connection-status">
+        Connect to OpenSpace:
+        <input id='ipaddress' type=text placeholder="Enter ip address"/>
+        <button onClick="connectToOpenSpace();">Connect</button>
+      </div>
+
+      <div >
+        <h2 style="color: #b0eaff">An exploration of the four Galilean moons.</h2>
+      </div>
+      <div class="script">
+
+        <p>
+          Have you ever looked up at the sky and wonder how us humans discovered those celestial bodies
+          and who's been doing it all these years? Since before written history, we've studied the stars
+          for thousands of years.
+        </p>
+        <p>Today, we'll be lookinga at the discoveries of Galileo Galilei, who found four huge moons of
+        Jupiter from right her on Earth with his telescope.</p>
+      </div>
+
+      <div class='card'>
+        <div class="group">
+        <button onClick="flytosomewhere('Jupiter');">Fly To Jupiter</button>
+        </div>
+      </div>
+
+
+      <div class="script">
+
+        <p>
+          The moons that we will be looking at today are the Galilean Moons, Io, Europa, Ganymede, and 
+          Callisto.
+        </p>
+        <p> Io, Europa, and Ganymede are a special set of moons out of these four that have a specific 
+          connection called “orbital resonance”, one where their orbits happen at set intervals compared 
+          to each other, which plays a big role I some aspects of these moons.</p>
+
+      </div>
+
+      <div class='card'>
+          <div class="group">
+        <button onClick="flytosomewhere('Io');">Fly To Io</button>
+      </div>
+      </div>
+
+      <div class="script">
+
+        <p>
+          Let’s start with the one closest to Jupiter and the one that looks the most different with its 
+          colors.
+        </p>
+        <p> 
+          Do you see all of those dark spots here? Those are spots caused by the volcanic activity on Io, 
+          and there are well over <b>100 active hundred</b> volcanoes on it. ‘Why does it have so many 
+          volcanos?,’ you may ask. After all, Io is only <b>8% of Earth’s entire surface area</b>. Well, 
+          this is where orbital resonance comes into play. 
+        </p>
+        <p>Orbital resonance creates huge tidal forces on Io that are so strong that it doesn't just 
+          <b>move water 60 feet</b>, but it moves <b>solid ground 300 feet</b>! That's as long as a football
+          field or as tall as the Statue of Liberty.
+        </p>
+
+
+      </div>
+
+      <div class='card'>
+          <div class="group">
+        <button onClick="flytosomewhere('Europa');">Fly To Europa</button>
+      </div>
+      </div>
+
+      <div class="script">
+
+        <p>
+          To our next moon on our path from Jupiter is another one with a different color than what you’d 
+          expect. This is Europa. It looks rather white, doesn't it? Its white coloring is all due to water
+          ice <b>that's 10 miles deep<b>. The marks on its surface are from tidal forces acting on it. It causes
+          the ice to shift and crack thanks to something important underneath--water, a huge ocean in fact.
+        </p>
+        <p>
+          The significance of this lies with our exploration for extraterrestial life, or aliens. While we won't
+          be finding little gray or green men but microscopic life and we haven't found any other life yet, based 
+          on what we know about Europa and about what's needed for life, scientists have high hopes that if there's
+          any celestial body with with some singn of life on it in our solar system, Europa is of the most
+          promising. As a reult, Europa is a very popular moon often talked about by scientists.
+        </p>
+
+      </div>
+      <div class='card'>
+        <div class="group">
+          <button onClick="flytosomewhere('Ganymede');">Fly To Ganymede</button>
+        </div>
+        </div>
+
+
+      <div class="script">
+
+        <p>
+          Next on our tour of Galilean moons is Ganymede, the largest of Jupiter’s moons and the largest moon in our 
+          solar system; a big title indeed. It’s even <b>bigger than Mercury</b>, one of the 8 planets in our solar 
+          system. Ganymede is also the only moon in our solar system with a magnetic field, which certain planets 
+          like Earth have that let us see the aurora borealis, for example. 
+        </p>  
+        <p>
+          he way this magnetic field and Ganymede’s aurorae shift showed us one important thing about the planet it’s 
+          believed that underneath the moon’s crust is an ocean, too, an ocean deeper than Europa’s and maybe even 
+          the largest in the whole solar system. However, this ocean is thought to be <b>95 miles deep instead of 
+          10 miles,</b> so it would be much harder than Europa to get to; even then, there’s still the possibility of 
+          life on Ganymede too. After all, one of the most important things needed for life is liquid water.
+        </p>
+        <p>Last but not least--</p>
+
+      </div>
+      
+        <div class='card'>
+        <div class="group">
+          <button onClick="flytosomewhere('Callisto');">Fly To Callisto</button>
+        </div>
+        </div>
+        
+      <div class="script">
+        <p>
+        —Callisto. Of the four Galilean Moons, Callisto is not involved in orbital resonance with the other three 
+        moons, meaning that it doesn’t have to deal with as strong tidal forces. Once considered to be a completely 
+        uneventful moon, Callisto is Jupiter’s second largest moon and the third largest in our solar system. Look at
+        all of those white spots on its surface.
+        </p>
+        <p>
+        hose spots are believed to all craters capped with ice, coming from impact spots on its icy surface from 
+        whatever comets and asteroids that may have hit it, going as far back as 4 billion years ago. It’s 
+        considered the oldest and most cratered surface in our solar system. And, it may be that Callisto, despite 
+        its appearances, has an ocean underneath its surface as well.
+        </p>
+        <p>
+        That’s a three-for-four ‘water underneath the surface’ scenarios. That sounds like there may be a lot of 
+        hope for alien life yet when we get some water samples from their oceans.
+        </p>
+        </div>
+        
+      <div class="script">
+        <p>
+          And those four diverse moons are the moons that were seen by Galileo through his telescope. While he 
+          couldn’t see any of the details of these four moons that we’ve seen today through his telescope, without 
+          his observations, who knows when we would have our exploration of the telescope and the solar system around 
+          us?
+        </p>
+
+
+      <div id="main">
+      </div>
+      <script type="text/javascript">
+        connectToOpenSpace('localhost');
+      </script>
+    </div>
+  <body>
+</html>
