@@ -1,5 +1,5 @@
 html {
-  background-color: #222;
+  background-color: #1a1635;
 }
 
 body {
@@ -51,7 +51,7 @@ div.disconnected .connection-status {
 }
 
 div.connected .connection-status {
-  background-color: #222;
+  background-color: #0d5a2b;
   color: #eee;
 }
 
@@ -64,7 +64,7 @@ div.connected .connection-status {
   clear:both;
 }
 .script p {
-  font-family: Courier, monospace;
+  font-family: monospace;
   font-size: 1.1em;
 }
 .card {
@@ -111,11 +111,11 @@ button {
 }
 
 div.disconnected button {
-  background-color: #777;
+  background-color: #5d4e63;
 }
 
 div.disconnected button:hover {
-  background-color: #777;
+  background-color: #658384;
 }
 
 h2 {
