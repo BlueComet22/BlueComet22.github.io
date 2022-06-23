@@ -64,8 +64,8 @@ div.connected .connection-status {
   clear:both;
 }
 .script p {
-  font-family: monospace;
-  font-size: 1.1em;
+  font-family: verdana, sans-serif;
+  font-size: 1.05em;
 }
 .card {
   /* background-color: #111; */
@@ -115,7 +115,7 @@ div.disconnected button {
 }
 
 div.disconnected button:hover {
-  background-color: #658384;
+  background-color: #4a4c66;
 }
 
 h2 {
