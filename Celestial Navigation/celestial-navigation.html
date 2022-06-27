@@ -1,0 +1,328 @@
+<html>
+  <head>
+    <title>Celestial Navigation</title>
+    <link rel="stylesheet" type="text/css" href="main.css">
+    <script type="text/javascript" src="openspace-api.js"></script>
+    <script type="text/javascript" src="openspace-default-buttons.js"></script>
+
+    <script type="text/javascript">
+      //variable for js libarary
+      var openspace = null;
+
+      const delay = ms => new Promise(res => setTimeout(res, ms));
+
+      var htmlFunction = (action, id) => {
+          var cardHTML = "<div id=\"" + action.title + "\" class='card'><h2>" + action.title + "</h2>";
+          if (action.description) {
+            action.description.split('\n').map(item => {
+              cardHTML += "<p>" + item + "</p>";
+            });
+          }
+          if (action.buttons) {
+            Object.keys(action.buttons).map(button => {
+              const fn = action.buttons[button];
+              cardHTML += "<button id=\"" + action.title+button + "\">"+ button +"</button>";
+            });
+          }
+          cardHTML += "</div>";
+          document.getElementById('main').innerHTML += cardHTML;
+      };
+
+      var clickFunction = (action, id) => {
+        if (action.buttons) {
+          Object.keys(action.buttons).map(button => {
+              const fn = action.buttons[button];
+              document.getElementById(action.title+button).addEventListener("click", fn);
+          });
+        }
+      }
+
+      //helper function to map the buttons to html
+      function mapButtons(openspace) {
+        document.getElementById('main').innerHTML += "<div class='card'>Default Buttons</div>"
+        defaultButtonGroups.map(htmlFunction);
+        defaultButtonGroups.map(clickFunction);
+      }
+
+      //helper function to connect to opensapce
+      var connectToOpenSpace = () => {
+        //setup the api params
+        var host = document.getElementById('ipaddress').value;
+        var api = window.openspaceApi(host, 4682);
+        //notify users on disconnect
+        api.onDisconnect(() => {
+          console.log("disconnected");
+          document.getElementById('container').className = "disconnected";
+          document.getElementById('connection-status').style.opacity = 1;
+          var disconnectedString = "Connect to OpenSpace: ";
+          disconnectedString += '<input id="ipaddress" type=text placeholder="Enter ip address" /> ';
+          disconnectedString += '<button onClick="connectToOpenSpace();">Connect</button>';
+          document.getElementById('connection-status').innerHTML = disconnectedString;
+          openspace = null;
+        });
+        //notify users and map buttons when connected
+        api.onConnect(async () => {
+          try {
+            document.getElementById('container').className = "connected";
+            document.getElementById('connection-status').innerHTML = "";
+            openspace = await api.library();
+            console.log('connected');
+            // mapButtons(openspace);
+          } catch (e) {
+            console.log('OpenSpace library could not be loaded: Error: \n', e);
+            return;
+          }
+        })
+        //connect
+        api.connect();
+      };
+
+      function logMessage(message) {
+        console.log(message);
+        document.getElementById('connection-status').innerHTML = message;
+        document.getElementById("connection-status").style.opacity = 1;
+        fadeOut();
+      }
+
+      // function that fades out the log div after 5 seconds
+      function fadeOut() {
+        setTimeout(function() {
+          var fade = document.getElementById("connection-status");
+          var timerId = setInterval(function() {
+            var opacity = fade.style.opacity;
+            if (opacity == 0.0) {
+              clearInterval(timerId);
+            } else {
+              fade.style.opacity = opacity - 0.05;
+            }
+          }, 100);
+        }, 5000);
+      }
+
+      async function fadeOutSceneGraphNode(sgn, option) {
+        openspace.setPropertyValue('Scene.' + sgn + '.Renderable.Opacity', 0.0, 1.0);
+        if (option != 'NoDisable') {
+          await delay(1500);
+          openspace.setPropertyValue('Scene.' + sgn + '.Renderable.Enabled', false)    ;
+        }
+      }
+      function fadeInSceneGraphNode(sgn) {
+        openspace.setPropertyValue('Scene.' + sgn + '.Renderable.Opacity', 0.0);
+        openspace.setPropertyValue('Scene.' + sgn + '.Renderable.Enabled', true);
+        openspace.setPropertyValue('Scene.' + sgn + '.Renderable.Opacity', 0.9, 1.0);
+      }
+
+      function fadeInTagGroup(sgn) {
+        openspace.setPropertyValue(sgn + '.Renderable.Opacity', 0.0);
+        openspace.setPropertyValue(sgn + '.Renderable.Enabled', true);
+        openspace.setPropertyValue(sgn + '.Renderable.Opacity', 0.9, 1.0);
+      }
+
+      async function fadeOutTagGroup(sgn, option) {
+        openspace.setPropertyValue(sgn + '.Renderable.Opacity', 0.0, 1.0);
+        if (option != 'NoDisable') {
+          await delay(1500);
+          openspace.setPropertyValue(sgn + '.Renderable.Enabled', false)    ;
+        }
+      }
+      async function fadeOutColorLayer(planet, layer) {
+        openspace.setPropertyValueSingle('Scene.' + planet + '.Renderable.Layers.ColorLayers.' + layer + '.Settings.Opacity', 0.0, 1.0);
+        await delay(1500);
+        openspace.setPropertyValueSingle('Scene.' + planet + '.Renderable.Layers.ColorLayers.' + layer + '.Enabled', false);
+      }
+
+      function fadeInColorLayer(planet, layer) {
+        openspace.setPropertyValueSingle('Scene.' + planet + '.Renderable.Layers.ColorLayers.' + layer + '.Settings.Opacity', 0.0);
+        openspace.setPropertyValueSingle('Scene.' + planet + '.Renderable.Layers.ColorLayers.' + layer + '.Enabled', true);
+        openspace.setPropertyValueSingle('Scene.' + planet + '.Renderable.Layers.ColorLayers.' + layer + '.Settings.Opacity', 1.0, 1.0);
+      }
+
+      async function disableHeightLayer(planet, layer) {
+        openspace.setPropertyValueSingle('Scene.' + planet + '.Renderable.Layers.HeightLayers.' + layer + '.Enabled', false);
+      }
+
+      function enableHeightLayer(planet, layer) {
+        openspace.setPropertyValueSingle('Scene.' + planet + '.Renderable.Layers.HeightLayers.' + layer + '.Enabled', true);
+      }
+
+      function flytosomewhere(whereto) {
+        openspace.pathnavigation.flyTo(whereto);
+        openspace.time.setPause(true)
+
+      }
+      function timechange(deltaTime) {
+        openspace.setDeltaTime(deltaTime);
+      }
+
+    </script>
+
+
+  </head>
+  <body>
+    <!-- HTML Containers -->
+    <div id="container" class="disconnected">
+      <div id="connection-status" class="connection-status">
+        Connect to OpenSpace:
+        <input id='ipaddress' type=text placeholder="Enter ip address"/>
+        <button onClick="connectToOpenSpace();">Connect</button>
+      </div>
+
+      <div >
+        <h2 style="color: #b0eaff">Human travel and the stars.</h2>
+      </div>
+      <div class="script">
+        <p>
+          Humans never really stopped travelling during the thousands of years that we’ve been around. 
+          Whether to explore an unfamiliar place or to return to a place they know. In those thousands 
+          of years, the way that we’ve navigated our travels have changed greatly; however—
+        </p>
+      </div>
+
+      <div class='card'>
+        <h2>Stars</h2>
+        <div class="group">
+          <span class="groupName">Turn Stars On/Off</span>
+        <button onClick="fadeInSceneGraphNode('Stars');">On</button>
+        <button onClick="fadeOutSceneGraphNode('Stars');">Off</button>
+        </div>
+      </div>
+
+
+      <div class="script">
+
+        <p>
+          —we often look up to the sky to create them.
+        </p>
+        <p>
+          Before GPSs, travelers by boat depended on the stars to know where they were and what direction 
+          that they were going in, and that’s what we call <b>celestial navigation</b>. Perhaps not as dependable, 
+          but with a lot of effort, it was accurate enough and it definitely helped when there weren’t that 
+          many options to begin with.
+        </p>
+        <p>
+          How many of you have heard of the Big Dipper or the Little Dipper?
+        </p>
+
+      </div>
+
+      <div class='card'>
+        <h2>Ursa Minor Constellation</h2>
+        <div class="group">
+          <span class="groupName">Ursa Minor</span>
+        <button onClick="fadeInSceneGraphNode('ImageConstellation-Umi');">On</button>
+        <button onClick="fadeOutSceneGraphNode('ImageConstellation-Umi');">Off</button>
+        </div>
+        <div class="group">
+          <span class="group">Speed Up Time</span>
+        <button onClick="timechange(3600.0);">On</button>
+        <button onClick="timechange(1.0);">Off</button>
+        </div>
+
+      </div>
+      
+      <div class="script">
+        <p>These seven stars in the sky create the little Dipper, also commonly known as <b>Ursa Minor</b>, 
+          stars in the shape of a small bear. This is one of the most popular constellations for many 
+          reasons, including in celestial navigation. This bright star <b>on its tail</b> is called <b>Polaris</b>, 
+          also known as the ‘north star’ or the ‘pole star’; it’s the brightest star in Ursa Minor and 
+          <b>visible to the naked eye at night</b>. It’s also a star that’s so close to the north pole that no 
+          matter what day or time of year it is in the northern hemisphere it doesn’t fall below the 
+          horizon. In fact—
+        </p>
+        <p>
+          It <b>doesn’t really move</b> all that much in the sky either, especially compared to the other stars; 
+          with a constant like this, it’s a great method of finding where you are regarding <b>latitude</b> – 
+          that is, the distance you are from the equator. 
+        </p>
+      </div>
+      
+      <div class='card'>
+        <h2>Draco Constellation</h2>
+        <div class="group">
+          <span class="groupName">Draco</span>
+        <button onClick="fadeInSceneGraphNode('ImageConstellation-Dra');">On</button>
+        <button onClick="fadeOutSceneGraphNode('ImageConstellation-Dra');">Off</button>
+        </div>
+      </div>
+      
+      <div class="script">
+        <p>
+          Polaris <b>wasn’t always the North Star</b>, however; 1600 years ago—
+        </p>
+        <p>
+          It used to be Thuban, but the North Star changed, like all things eventually do. Either way, the North
+          Star makes it makes it nice and easy, relatively speaking. But. Wait. What about the longitude?
+        </p>
+          
+      </div>
+ 
+      
+      <div class="script">
+        <p>
+          You can’t find a location without longitude. That’s like being <b>given a street without the avenue</b>. 
+          Now, how do we calculate that? Unfortunately—We can’t use Polaris to find the longitude. But there 
+          are many other stars in these constellations that can be used in its stead.
+        </p>
+
+      </div>
+        
+      <div class='card'>
+        <div class="group">
+          <span class="groupName">Navigation Stars</span>
+          <button onClick="fadeInSceneGraphNode('NavigationStars');">On</button>
+          <button onClick="fadeOutSceneGraphNode('NavigationStars');">Off</button>
+        </div>
+
+      </div>
+
+      <div class="script">
+
+        <p>
+          Using these, you can find the <b>lunar distance</b>, which is the <b>angle between the moon and one of 
+          these stars on the ecliptic</b>; the ecliptic of which is the plane about here, where the orbit 
+          of Earth is straight across and go around with no angle. With that and a fair bit of math using 
+          a special table, you can find the longitude. The good news, though, is that in celestial navigation 
+          in more recent time, we can use a <b>marine chronometer</b>, or a special clock to use on boats and find 
+          the difference between the <b>time zone you’re in and Coordinated Universal Time</b>, and the fraction of 
+          the time difference is the fraction of 360 degrees. And that gets you your longitude.
+        </p>
+        <p>
+          At the end of the day, though, not many of us get to use something like this, especially not in 
+          our daily lives. What we do oft use, however, are these.
+
+      </div>
+
+
+
+      <div class='card'>
+        <h2>Constellations</h2>
+        <div class="group">
+          <span class="groupName">GPS Satellites</span>
+        <button onClick="fadeInSceneGraphNode('GPS');">On</button>
+        <button onClick="fadeOutSceneGraphNode('GPS');">Off</button>
+        </div>
+
+      </div>
+      
+      <div class="script">
+        <p>
+          These are <b>GPS satellites</b>, something that you may very often use on your cellphone or your computer when 
+          you need directions from a place or are very, very lost. With just a <b>GPS receiver</b>, they can tell you what 
+          your location is on the entire globe, though with some hiccups if the signal ends up being blocked wherever 
+          you may be, since the signals are weak. While it’s certainly a lot easier to understand the way that the 
+          information is handed to you on your device. That doesn’t mean that celestial navigation is no longer done.
+        </p>
+        <p>Seeing this progression of our methods, of how our methods of navigation has changed, are simply a testemant
+         to our technological advancements.
+        </p>
+
+      </div>
+
+      <div id="main">
+      </div>
+      <script type="text/javascript">
+        connectToOpenSpace('localhost');
+      </script>
+    </div>
+  <body>
+</html>
