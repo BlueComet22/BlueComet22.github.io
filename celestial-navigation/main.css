@@ -120,6 +120,11 @@ div.disconnected button:hover {
 
 h2 {
   margin-top: 0;
+  margin-left: 5px;
+}
+
+a {
+  padding: 5px;
 }
 
 button:hover {
