@@ -57,8 +57,8 @@ div.connected .connection-status {
 
 .script {
   margin: 1em;
-  color: #000;
-  background-color: #EEEEEE;
+  color: #eee;
+  background-color: #000;
   padding: 0.5em 10%;
   line-height: 1.4em;
   clear:both;
