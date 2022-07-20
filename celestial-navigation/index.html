@@ -218,9 +218,9 @@
         <button onClick="fadeOutSceneGraphNode('EquatorialSphere'); fadeOutSceneGraphNode('EquatorialSphereLabels');">Off</button>
         </div>
         <div class="group">
-          <span class="groupName">Speed Up Time</span>
-        <button onClick="timechange(4000);">On</button>
-        <button onClick="timechange(1);">Off</button>
+          <span class="groupName">Mark Polaris</span>
+        <button onClick="fadeInSceneGraphNode('Scene.PolarisMarker.Renderable.Enabled');">On</button>
+        <button onClick="fadeOutSceneGraphNode('Scene.PolarisMarker.Renderable.Enabled');">Off</button>
         </div>
 
 
@@ -253,11 +253,16 @@
           <span class="groupName">Cepheus Lines</span>
         <button onClick="fadeInSceneGraphNode('ConstellationLines-Cep-lines');">On</button>
         <button onClick="fadeOutSceneGraphNode('ConstellationLines-Cep-lines');">Off</button>
-        </div>        
+        </div>
+        <div class="group">
+          <span class="groupName">Mark Errai</span>
+        <button onClick="fadeInSceneGraphNode('Scene.ErraiMarker.Renderable.Enabled');">On</button>
+        <button onClick="fadeOutSceneGraphNode('Scene.ErraiMarker.Renderable.Enabled');">Off</button>
+        </div>       
         <div class="group">
           <span class="groupName">Timeskip</span>
-        <button onClick="timeskip('3100-06-01T18:18:45.451');">Forward</button>
-        <button onClick="timeskip('2022-06-16T18:23:11.427');">Backward</button>
+        <button onClick="timeskip('3100-06-01T18:18:45.451');">Future</button>
+        <button onClick="timeskip('2022-06-16T18:23:11.427');">Present</button>
         </div>
       </div>
       
@@ -289,7 +294,8 @@
           <span class="groupName">Off Prior</span>
           <button onClick="fadeOutSceneGraphNode('ConstellationLines-Cep-lines'); fadeOutSceneGraphNode('ImageConstellation-Cep'); 
                            fadeOutSceneGraphNode('EquatorialSphere'); fadeOutSceneGraphNode('EquatorialSphereLabels'); 
-                           fadeOutSceneGraphNode('ImageConstellation-UMi'); fadeOutSceneGraphNode('ConstellationLines-UMi-lines');">Off</button>
+                           fadeOutSceneGraphNode('ImageConstellation-UMi'); fadeOutSceneGraphNode('ConstellationLines-UMi-lines'); 
+                           fadeOutSceneGraphNode('Scene.PolarisMarker.Renderable.Enabled'); ">Off</button>
         </div>
         
         <div class="group">
@@ -335,12 +341,6 @@
           <span class="groupName">GPS Satellites</span>
         <button onClick="fadeInSceneGraphNode('gps-ops');">On</button>
         <button onClick="fadeOutSceneGraphNode('gps-ops');">Off</button>
-        </div>
-        
-        <div class="group">
-          <span class="groupName">Speed Up Time</span>
-        <button onClick="timechange(1800);">On</button>
-        <button onClick="timechange(1);">Off</button>
         </div>
 
         <div class="group">
