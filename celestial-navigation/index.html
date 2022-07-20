@@ -153,6 +153,10 @@
       function timechange(deltaTime) {
         openspace.time.interpolateDeltaTime(deltaTime);
       }
+      
+      function timeskip(newdate) {
+        openspace.time.setTime(newdate);
+      }
 
     </script>
 
@@ -210,8 +214,8 @@
         </div>
         <div class="group">
           <span class="groupName">Equatorial Sphere</span>
-        <button onClick="fadeInSceneGraphNode('EquatorialSphere');">On</button>
-        <button onClick="fadeOutSceneGraphNode('EquatorialSphere');">Off</button>
+        <button onClick="fadeInSceneGraphNode('EquatorialSphere'); fadeInSceneGraphNode('EquatorialSphereLabels');">On</button>
+        <button onClick="fadeOutSceneGraphNode('EquatorialSphere'); fadeOutSceneGraphNode('EquatorialSphereLabels');">Off</button>
         </div>
         <div class="group">
           <span class="groupName">Speed Up Time</span>
@@ -250,12 +254,17 @@
         <button onClick="fadeInSceneGraphNode('ConstellationLines-Cep-lines');">On</button>
         <button onClick="fadeOutSceneGraphNode('ConstellationLines-Cep-lines');">Off</button>
         </div>        
+        <div class="group">
+          <span class="groupName">Timeskip</span>
+        <button onClick="timeskip(3100-06-01T18:18:45.451);">Forward</button>
+        <button onClick="timeskip(2022-06-16T18:23:11.427);">Backward</button>
+        </div>
       </div>
       
       <div class="script">
         <p>
           Polaris <b>wasn’t always the North Star</b>, however; nor will it always be from now.
-          If we move forward almost 1000 years from now, it's a different story.
+          If we move forward almost 3000 or even 1000 years from now, it's a different story.
         </p>
         <p>
           In 3100, our new pole star would be here, in <b>Cepheus</b>, specifically <b>Errai</b>. Like all things 
@@ -276,6 +285,13 @@
       </div>
         
       <div class='card'>
+        <div class="group">
+          <span class="groupName">Off Prior</span>
+          <button onClick="fadeOutSceneGraphNode('ConstellationLines-Cep-lines'); fadeOutSceneGraphNode('ImageConstellation-Cep'); 
+                           fadeOutSceneGraphNode('EquatorialSphere'); fadeOutSceneGraphNode('EquatorialSphereLabels'); 
+                           fadeOutSceneGraphNode('ImageConstellation-UMi'); fadeOutSceneGraphNode('ConstellationLines-UMi-lines');">Off</button>
+        </div>
+        
         <div class="group">
           <span class="groupName">Turn Stars On/Off</span>
         <button onClick="fadeInSceneGraphNode('Stars');">On</button>
@@ -327,6 +343,11 @@
         <button onClick="timechange(1);">Off</button>
         </div>
 
+        <div class="group">
+          <span class="groupName">All Constellation Lines</span>
+        <button onClick="fadeInSceneGraphNode('Constellations');">On</button>
+        <button onClick="fadeOutSceneGraphNode('Constellations');">Off</button>
+        </div>
       </div>
       
       <div class="script">
@@ -334,7 +355,7 @@
           These are <b>GPS satellites</b>, something that you may very often use on your cellphone or your computer when 
           you need directions from a place or are very, very lost. There number and their movements allow for one to 
           locate themselves on the entire globe with just a <b>GPS receiver</b>. To get a GPS to work, you need only <b>four
-          visible satellites</b> at your location, and many locations <b>average at 7 to 10</b> at any given time, though with some 
+          visible satellites</b> at your location out of <b>31</b>, and many locations <b>average at 7 to 10</b> at any given time, though with some 
           hiccups if the signal ends up being blocked wherever you may be, since the signals are weak. 
           While it’s certainly a lot easier to understand the way that the information is handed to you on your device. 
           <b>That doesn’t mean that celestial navigation is no longer done</b>.
