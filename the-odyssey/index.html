@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>A Tour of the Galilean Moons</title>
+    <title>The Odyssey</title>
     <link rel="stylesheet" type="text/css" href="main.css">
     <script type="text/javascript" src="openspace-api.js"></script>
     <script type="text/javascript" src="openspace-default-buttons.js"></script>
@@ -165,7 +165,7 @@
       </div>
 
       <div >
-        <a href="https://bluecomet22.github.io/celestial-navigation/"; align="right"; style="color:White">The Odyssey</a>
+        <a href="https://bluecomet22.github.io/celestial-navigation/"; align="right"; style="color:White">Celestial Navigation</a>
         <h2 style="color: #b0eaff">The Journey of Odysseus [UNDER DEVELOPMENT]</h2>
       </div>
       <div class="script">
@@ -193,7 +193,7 @@
 
       <div class='card'>
         <div class="group">
-        <button onClick="flytosomewhere('Jupiter');">Fly To Jupiter</button>
+        <button onClick="flytosomewhere('Jupiter');">.</button>
         </div>
       </div>
 
@@ -208,10 +208,6 @@
           Circe lived.
         </p>
         <p> |<i>Circe image</i>|</p>
-        <p> <b>Io, Europa, and Ganymede are a special set</b> of moons out of these four that have a specific 
-          connection called <b>“orbital resonance”</b>, one where their orbits happen at set intervals compared 
-          to each other, where when Io orbits Jupiter four times, Europa orbist Jupiter twice, and Ganymede once. 
-        </p>
         <p>
           Because he had a herb that makes him immune to Circe's magic, half of the crew, not including him, were turned into pigs by Circe's 
           magically drugged food. While Odysseus was able to get Circe to turn his crew back into humans, Odysseus was seduced by her, and they 
@@ -221,7 +217,7 @@
 
       <div class='card'>
           <div class="group">
-        <button onClick="flytosomewhere('Io');">Fly To Io</button>
+        <button onClick="flytosomewhere('Io');">.</button>
       </div>
       </div>
 
@@ -233,12 +229,6 @@
         <p>Sirens, bird-women whose songs were who urged all listeners to come to them, leaving them fated to drown in the oceans, the sea monsters 
           on either side of this very strait—Scylla, a man-eating monster with six heads on one side, and Charybdis, a monster who created dangerous 
           whirlpools on the other– luckily only lost 6 men rather than his entire crew and his ship</p>
-        <p> 
-          It strange color and these dark spots are caused by the massive amounts of volcanic activity on Io, 
-          where the volcanos are release sulfur that give it its green and redish colour. Io has <b>hundreds of
-          active volcanoes</b> on it, and that's a lot of volcanoes, especially for its size, which is 3.5x smaller 
-          than Earth. 
-
         <p>The good news doesn't last, however. As, where do they end up other than Thrinacia, modern day Republic of Malta, and the very place 
           where the sacred cattle of Helios are said to be. And with his crew keen an going there, tempting fate was unavoidable—so tempt fate they did. 
           After a long storm causes them to eat up all their food, what was left but to eat the cattle? And thus, the crew was cursed,— 
@@ -251,7 +241,7 @@
 
       <div class='card'>
           <div class="group">
-        <button onClick="flytosomewhere('Europa');">Fly To Europa</button>
+        <button onClick="flytosomewhere('Europa');">.</button>
       </div>
       </div>
 
@@ -281,10 +271,28 @@
 
       </div>
       <div class='card'>
+        <h2>Celestial Navigation</h2>
         <div class="group">
-          <button onClick="flytosomewhere('Ganymede');">Fly To Ganymede</button>
+          <span class="groupName">Ursa Major</span>
+        <button onClick="fadeInSceneGraphNode('ConstellationLines-Uma-lines'); fadeInSceneGraphNode('ImageConstellation-Uma');">On</button>
+        <button onClick="fadeOutSceneGraphNode('ConstellationLines-Uma-lines'); fadeOutSceneGraphNode('ImageConstellation-Uma');">Off</button>
         </div>
+        <div class="group">
+          <span class="groupName">Boötes</span>
+        <button onClick="fadeInSceneGraphNode('ConstellationLines-Boo-lines'); fadeInSceneGraphNode('ImageConstellation-Boo');">On</button>
+        <button onClick="fadeOutSceneGraphNode('ConstellationLines-Boo-lines'); fadeOutSceneGraphNode('ImageConstellation-Boo');">Off</button>
         </div>
+        <div class="group">
+          <span class="groupName">Orion</span>
+        <button onClick="fadeInSceneGraphNode('ConstellationLines-Ori-lines'); fadeInSceneGraphNode('ImageConstellation-Ori');">On</button>
+        <button onClick="fadeOutSceneGraphNode('ConstellationLines-Ori-lines'); fadeOutSceneGraphNode('ImageConstellation-Ori');">Off</button>
+        </div>
+        <div class="group">
+          <span class="groupName">Mark Pleiades</span>
+        <button onClick="fadeInSceneGraphNode('PleiadesMarker');">On</button>
+        <button onClick="fadeOutSceneGraphNode('PleiadesMarker');">Off</button>
+        </div>
+      </div>
 
 
       <div class="script">
