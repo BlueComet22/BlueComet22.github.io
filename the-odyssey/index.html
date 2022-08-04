@@ -1,0 +1,308 @@
+<html>
+  <head>
+    <title>A Tour of the Galilean Moons</title>
+    <link rel="stylesheet" type="text/css" href="main.css">
+    <script type="text/javascript" src="openspace-api.js"></script>
+    <script type="text/javascript" src="openspace-default-buttons.js"></script>
+
+    <script type="text/javascript">
+      //variable for js libarary
+      var openspace = null;
+
+      const delay = ms => new Promise(res => setTimeout(res, ms));
+
+      var htmlFunction = (action, id) => {
+          var cardHTML = "<div id=\"" + action.title + "\" class='card'><h2>" + action.title + "</h2>";
+          if (action.description) {
+            action.description.split('\n').map(item => {
+              cardHTML += "<p>" + item + "</p>";
+            });
+          }
+          if (action.buttons) {
+            Object.keys(action.buttons).map(button => {
+              const fn = action.buttons[button];
+              cardHTML += "<button id=\"" + action.title+button + "\">"+ button +"</button>";
+            });
+          }
+          cardHTML += "</div>";
+          document.getElementById('main').innerHTML += cardHTML;
+      };
+
+      var clickFunction = (action, id) => {
+        if (action.buttons) {
+          Object.keys(action.buttons).map(button => {
+              const fn = action.buttons[button];
+              document.getElementById(action.title+button).addEventListener("click", fn);
+          });
+        }
+      }
+
+      //helper function to map the buttons to html
+      function mapButtons(openspace) {
+        document.getElementById('main').innerHTML += "<div class='card'>Default Buttons</div>"
+        defaultButtonGroups.map(htmlFunction);
+        defaultButtonGroups.map(clickFunction);
+      }
+
+      //helper function to connect to opensapce
+      var connectToOpenSpace = () => {
+        //setup the api params
+        var host = document.getElementById('ipaddress').value;
+        var api = window.openspaceApi(host, 4682);
+        //notify users on disconnect
+        api.onDisconnect(() => {
+          console.log("disconnected");
+          document.getElementById('container').className = "disconnected";
+          document.getElementById('connection-status').style.opacity = 1;
+          var disconnectedString = "Connect to OpenSpace: ";
+          disconnectedString += '<input id="ipaddress" type=text placeholder="Enter ip address" /> ';
+          disconnectedString += '<button onClick="connectToOpenSpace();">Connect</button>';
+          document.getElementById('connection-status').innerHTML = disconnectedString;
+          openspace = null;
+        });
+        //notify users and map buttons when connected
+        api.onConnect(async () => {
+          try {
+            document.getElementById('container').className = "connected";
+            document.getElementById('connection-status').innerHTML = "";
+            openspace = await api.library();
+            console.log('connected');
+            // mapButtons(openspace);
+          } catch (e) {
+            console.log('OpenSpace library could not be loaded: Error: \n', e);
+            return;
+          }
+        })
+        //connect
+        api.connect();
+      };
+
+      function logMessage(message) {
+        console.log(message);
+        document.getElementById('connection-status').innerHTML = message;
+        document.getElementById("connection-status").style.opacity = 1;
+        fadeOut();
+      }
+
+      // function that fades out the log div after 5 seconds
+      function fadeOut() {
+        setTimeout(function() {
+          var fade = document.getElementById("connection-status");
+          var timerId = setInterval(function() {
+            var opacity = fade.style.opacity;
+            if (opacity == 0.0) {
+              clearInterval(timerId);
+            } else {
+              fade.style.opacity = opacity - 0.05;
+            }
+          }, 100);
+        }, 5000);
+      }
+
+      async function fadeOutSceneGraphNode(sgn, option) {
+        openspace.setPropertyValue('Scene.' + sgn + '.Renderable.Opacity', 0.0, 1.0);
+        if (option != 'NoDisable') {
+          await delay(1500);
+          openspace.setPropertyValue('Scene.' + sgn + '.Renderable.Enabled', false)    ;
+        }
+      }
+      function fadeInSceneGraphNode(sgn) {
+        openspace.setPropertyValue('Scene.' + sgn + '.Renderable.Opacity', 0.0);
+        openspace.setPropertyValue('Scene.' + sgn + '.Renderable.Enabled', true);
+        openspace.setPropertyValue('Scene.' + sgn + '.Renderable.Opacity', 0.9, 1.0);
+      }
+
+      function fadeInTagGroup(sgn) {
+        openspace.setPropertyValue(sgn + '.Renderable.Opacity', 0.0);
+        openspace.setPropertyValue(sgn + '.Renderable.Enabled', true);
+        openspace.setPropertyValue(sgn + '.Renderable.Opacity', 0.9, 1.0);
+      }
+
+      async function fadeOutTagGroup(sgn, option) {
+        openspace.setPropertyValue(sgn + '.Renderable.Opacity', 0.0, 1.0);
+        if (option != 'NoDisable') {
+          await delay(1500);
+          openspace.setPropertyValue(sgn + '.Renderable.Enabled', false)    ;
+        }
+      }
+      async function fadeOutColorLayer(planet, layer) {
+        openspace.setPropertyValueSingle('Scene.' + planet + '.Renderable.Layers.ColorLayers.' + layer + '.Settings.Opacity', 0.0, 1.0);
+        await delay(1500);
+        openspace.setPropertyValueSingle('Scene.' + planet + '.Renderable.Layers.ColorLayers.' + layer + '.Enabled', false);
+      }
+
+      function fadeInColorLayer(planet, layer) {
+        openspace.setPropertyValueSingle('Scene.' + planet + '.Renderable.Layers.ColorLayers.' + layer + '.Settings.Opacity', 0.0);
+        openspace.setPropertyValueSingle('Scene.' + planet + '.Renderable.Layers.ColorLayers.' + layer + '.Enabled', true);
+        openspace.setPropertyValueSingle('Scene.' + planet + '.Renderable.Layers.ColorLayers.' + layer + '.Settings.Opacity', 1.0, 1.0);
+      }
+
+      async function disableHeightLayer(planet, layer) {
+        openspace.setPropertyValueSingle('Scene.' + planet + '.Renderable.Layers.HeightLayers.' + layer + '.Enabled', false);
+      }
+
+      function enableHeightLayer(planet, layer) {
+        openspace.setPropertyValueSingle('Scene.' + planet + '.Renderable.Layers.HeightLayers.' + layer + '.Enabled', true);
+      }
+
+      function flytosomewhere(whereto) {
+        openspace.pathnavigation.flyTo(whereto);
+        openspace.time.setPause(true)
+
+      }
+
+    </script>
+
+
+  </head>
+  <body>
+    <!-- HTML Containers -->
+    <div id="container" class="disconnected">
+      <div id="connection-status" class="connection-status">
+        Connect to OpenSpace:
+        <input id='ipaddress' type=text placeholder="Enter ip address"/>
+        <button onClick="connectToOpenSpace();">Connect</button>
+      </div>
+
+      <div >
+        <a href="https://bluecomet22.github.io/celestial-navigation/"; align="right"; style="color:White">The Odyssey</a>
+        <h2 style="color: #b0eaff">The Journey of Odysseus [UNDER DEVELOPMENT]</h2>
+      </div>
+      <div class="script">
+
+        <p>
+          The Odyssey is a epic poem of returning and hubris, of the travels of the king Odysseus after the 10 years he spent 
+          fighting in the Trojan War to return to his wife's side in Ithaca. While it's believed by many that these locations are 
+          merely fictional, for now, let's attribute the places that he had to visit a modern-day location.</p>
+        <p> After meeting the lotus-eaters in what is theorized by some to be in Lybia, Odysseus found himself and his crew in modern-day 
+          Sicily, the land of one-eyed monsters called the cyclopes. Finding a cave  with more food than they could hope for, they remained 
+          there for a short time—but little did they know—</p>
+        <p> |<i>Polyphemus image</i>| </p>
+        <p> —This was the cave where the cyclops Polyphemus, son of Poseidon, lived, and Polyphemus had little intention of letting a nice 
+          snack leave. 
+        </p>
+        <p>They were trapped in the cave with a man-eating monster now, and they didn't have many options outside of being eaten alive. 
+          But! Our tactician had a plan! Calling himself "Nobody," he filled Polyphemus with wine—</p>
+        <p> |<i>stabbing image</i>| </p>
+        <p>
+          And stabbed him in the eye. It's the perfect escape opportunity. But not before a bit of gloating and revealing his true name 
+          on the way. This, of course, totally won't backfire. And by that, I mean that, now knowing Odysseus' name, Polyphemus was able 
+          to call on his father to curse Odysseus trip home to last another 10 years.
+        </p>
+      </div>
+
+      <div class='card'>
+        <div class="group">
+        <button onClick="flytosomewhere('Jupiter');">Fly To Jupiter</button>
+        </div>
+      </div>
+
+
+      <div class="script">
+
+        <p>
+          As Odysseus' home, Ithaca, came into view upon the horizon. Something happened. The bag of winds that he had acquired from the 
+          keeper of the winds was opened up by his crew, shooting them all the way back to a different part of modern-day Sicily! 
+          And, unfortunately, their trip this time around from Sicily to Ithaca will not be smooth sailing. After their ship count was 
+          reduced to just one, they managed to find themselves at Aeaea, or a part of the modern-day west coast of Italy, where the witch-goddess 
+          Circe lived.
+        </p>
+        <p> |<i>Circe image</i>|</p>
+        <p> <b>Io, Europa, and Ganymede are a special set</b> of moons out of these four that have a specific 
+          connection called <b>“orbital resonance”</b>, one where their orbits happen at set intervals compared 
+          to each other, where when Io orbits Jupiter four times, Europa orbist Jupiter twice, and Ganymede once. 
+        </p>
+        <p>
+          Because he had a herb that makes him immune to Circe's magic, half of the crew, not including him, were turned into pigs by Circe's 
+          magically drugged food. While Odysseus was able to get Circe to turn his crew back into humans, Odysseus was seduced by her, and they 
+          ended up staying there for a year.</p>
+
+      </div>
+
+      <div class='card'>
+          <div class="group">
+        <button onClick="flytosomewhere('Io');">Fly To Io</button>
+      </div>
+      </div>
+
+      <div class="script">
+
+        <p>A year passes, and, at the end of that year, he meets a prophet who tells him that none of his crew should eat the sacred cows of 
+          Helios on Thrinacia or else Odysseus would lose all of his crew and his ship. Following that, Circe finally directs Odysseus towards the 
+          way home, giving him food and drink for his journey and detailing on what to avoid. However, even that was not without its troubles.</p>
+        <p>Sirens, bird-women whose songs were who urged all listeners to come to them, leaving them fated to drown in the oceans, the sea monsters 
+          on either side of this very strait—Scylla, a man-eating monster with six heads on one side, and Charybdis, a monster who created dangerous 
+          whirlpools on the other– luckily only lost 6 men rather than his entire crew and his ship</p>
+        <p> 
+          It strange color and these dark spots are caused by the massive amounts of volcanic activity on Io, 
+          where the volcanos are release sulfur that give it its green and redish colour. Io has <b>hundreds of
+          active volcanoes</b> on it, and that's a lot of volcanoes, especially for its size, which is 3.5x smaller 
+          than Earth. 
+
+        <p>The good news doesn't last, however. As, where do they end up other than Thrinacia, modern day Republic of Malta, and the very place 
+          where the sacred cattle of Helios are said to be. And with his crew keen an going there, tempting fate was unavoidable—so tempt fate they did. 
+          After a long storm causes them to eat up all their food, what was left but to eat the cattle? And thus, the crew was cursed,— 
+        </p>
+        <p>—and as they continued toward Ithaca when the storm died down, Odysseus was shipwrecked, his crew killed and his ships destroyed just as the 
+          prophecy foretold.</p>
+
+
+      </div>
+
+      <div class='card'>
+          <div class="group">
+        <button onClick="flytosomewhere('Europa');">Fly To Europa</button>
+      </div>
+      </div>
+
+      <div class="script">
+
+        <p>
+          He found himself in Ogygia, modern day Othonoi and the home of the goddess Calypso. 
+        </p>
+        <p>
+          |<i> Calypso image</i>|
+        </p>
+        <p>
+          Calypso falls in love with Odysseus, offering him immortality which he rejects, and holds him captive for 7 years despite him deeply missing 
+          home and his wife. It's only when Hermes, the god of travelling, arrives in autumn of the 7th year, that Calypso lets Odysseus free; she gives 
+          him a raft, food, clothing, and specific instructions.
+        </p>
+        <p>
+          Odysseus was told "to make his way over the sea, keeping the Bear on his left hand." Let's activate what he's said to have seen. Looking up 
+          into the sky, we see in the sky, as described: the "late-setting Bootes," Pleiades, and a Bear that looks at Orion; a sight that is very much 
+          similar to what Odysseus would have seen centuries ago. That means it was eastward to Ithaca!
+        </p>
+        <p>
+          Except. He gets shipwrecked again once Poseidon finds out that he's escaped. He manages to find himself in Scheria, now, modern day Corfu. 
+          However, another shipwreck does not mean hope is lost, as the king, queen, and their daughter are more than willing to help! After recounting 
+          his story to a bard and a group of others, the following night, he was given treasures and was taken back to Ithaca in secret.
+        </p>
+
+      </div>
+      <div class='card'>
+        <div class="group">
+          <button onClick="flytosomewhere('Ganymede');">Fly To Ganymede</button>
+        </div>
+        </div>
+
+
+      <div class="script">
+
+        <p>
+          Finally..., after 10 long years, he finally reaches the shores of Ithaca, no more gods to stop him from getting there and the curse ended. 
+          While the trials of Odysseus don't quite stop there, this concludes his ten year journey from the battlegrounds of the Trojan War. A very 
+          long journey indeed; one that makes it that much sweeter to finally return to his wife, Penelope's, side.
+        </p>
+
+      </div>
+      
+
+      <div id="main">
+      </div>
+      <script type="text/javascript">
+        connectToOpenSpace('localhost');
+      </script>
+    </div>
+  <body>
+</html>
