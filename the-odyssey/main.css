@@ -123,6 +123,12 @@ h2 {
   margin-left: 5px;
 }
 
+h3 {
+  margin-top: 0px;
+  margin-left: 5px;
+  color: #efe;
+}
+
 a {
   padding: 5px;
 }
